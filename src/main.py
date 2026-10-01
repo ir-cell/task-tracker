@@ -94,6 +94,22 @@ def show_tasks(storage):
         print()
 
 
+def show_overdue(storage):
+    """Показать только просроченные задачи."""
+    tasks = [t for t in storage.get_all() if t.is_overdue()]
+    print("\n=== Просроченные задачи ===\n")
+
+    if not tasks:
+        print("Просроченных задач нет.")
+        return
+
+    for t in tasks:
+        print(f"{t.id}. {t.title}")
+        print(f"   Исполнитель: {t.assignee}")
+        print(f"   Срок: {t.due_date} | Статус: {t.status}")
+        print()
+
+
 def main():
     """Главное меню."""
     storage = TaskStorage()
@@ -102,6 +118,7 @@ def main():
         print("\n--- Учёт задач команды ---")
         print("1. Добавить задачу")
         print("2. Показать все задачи")
+        print("3. Показать просроченные задачи")
         print("0. Выход")
 
         choice = input("\nВыберите действие: ").strip()
@@ -110,11 +127,13 @@ def main():
             add_task_interactive(storage)
         elif choice == "2":
             show_tasks(storage)
+        elif choice == "3":
+            show_overdue(storage)
         elif choice == "0":
             print("До встречи!")
             break
         else:
-            print("Ошибка: выберите 1, 2 или 0")
+            print("Ошибка: выберите 1, 2, 3 или 0")
 
 
 if __name__ == "__main__":
