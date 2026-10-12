@@ -1,4 +1,4 @@
-"""Первый рабочий сценарий: добавление задачи и просмотр списка."""
+"""Учёт задач команды разработки."""
 
 from datetime import date
 
@@ -76,13 +76,10 @@ def add_task_interactive(storage):
     print(f"\n✓ Задача «{task.title}» добавлена")
 
 
-def show_tasks(storage):
-    """Показать список всех задач."""
-    tasks = storage.get_all()
-    print("\n=== Список задач ===\n")
-
+def print_tasks(tasks):
+    """Напечатать список задач."""
     if not tasks:
-        print("Задач пока нет.")
+        print("Задач не найдено.")
         return
 
     for t in tasks:
@@ -94,20 +91,54 @@ def show_tasks(storage):
         print()
 
 
+def show_tasks(storage):
+    """Показать список всех задач."""
+    print("\n=== Список задач ===\n")
+    print_tasks(storage.get_all())
+
+
 def show_overdue(storage):
     """Показать только просроченные задачи."""
     tasks = [t for t in storage.get_all() if t.is_overdue()]
     print("\n=== Просроченные задачи ===\n")
+    print_tasks(tasks)
 
-    if not tasks:
-        print("Просроченных задач нет.")
+
+def filter_tasks(storage):
+    """Фильтрация задач по разным полям."""
+    print("\n=== Фильтрация задач ===")
+    print("Оставьте поле пустым, чтобы не фильтровать.\n")
+
+    assignee = input("Исполнитель: ").strip()
+    priority = input("Приоритет: ").strip()
+    stage = input("Этап: ").strip()
+    status = input("Статус: ").strip()
+
+    tasks = storage.get_all()
+
+    if assignee:
+        tasks = [t for t in tasks if t.assignee.lower() == assignee.lower()]
+    if priority:
+        tasks = [t for t in tasks if t.priority.lower() == priority.lower()]
+    if stage:
+        tasks = [t for t in tasks if t.stage.lower() == stage.lower()]
+    if status:
+        tasks = [t for t in tasks if t.status.lower() == status.lower()]
+
+    print(f"\n=== Найдено задач: {len(tasks)} ===\n")
+    print_tasks(tasks)
+
+
+def search_tasks(storage):
+    """Поиск задач по части названия."""
+    query = input("\nВведите часть названия: ").strip()
+    if not query:
+        print("Ошибка: пустой запрос")
         return
 
-    for t in tasks:
-        print(f"{t.id}. {t.title}")
-        print(f"   Исполнитель: {t.assignee}")
-        print(f"   Срок: {t.due_date} | Статус: {t.status}")
-        print()
+    tasks = [t for t in storage.get_all() if query.lower() in t.title.lower()]
+    print(f"\n=== Найдено задач: {len(tasks)} ===\n")
+    print_tasks(tasks)
 
 
 def show_summary(storage):
@@ -145,6 +176,8 @@ def main():
         print("2. Показать все задачи")
         print("3. Показать просроченные задачи")
         print("4. Показать сводку")
+        print("5. Фильтровать задачи")
+        print("6. Найти задачу по названию")
         print("0. Выход")
 
         choice = input("\nВыберите действие: ").strip()
@@ -157,11 +190,15 @@ def main():
             show_overdue(storage)
         elif choice == "4":
             show_summary(storage)
+        elif choice == "5":
+            filter_tasks(storage)
+        elif choice == "6":
+            search_tasks(storage)
         elif choice == "0":
             print("До встречи!")
             break
         else:
-            print("Ошибка: выберите 1, 2, 3, 4 или 0")
+            print("Ошибка: выберите 1–6 или 0")
 
 
 if __name__ == "__main__":
