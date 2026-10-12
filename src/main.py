@@ -40,6 +40,16 @@ def ask_choice(prompt, options):
         print(f"Ошибка: выберите одно из: {', '.join(options)}")
 
 
+def ask_id(prompt="Введите ID задачи: "):
+    """Спросить у пользователя ID."""
+    while True:
+        raw = input(prompt).strip()
+        try:
+            return int(raw)
+        except ValueError:
+            print("Ошибка: введите число")
+
+
 def add_task_interactive(storage):
     """Диалог добавления задачи."""
     print("\n=== Добавление задачи ===\n")
@@ -141,6 +151,88 @@ def search_tasks(storage):
     print_tasks(tasks)
 
 
+def edit_task(storage):
+    """Изменение задачи по ID."""
+    task_id = ask_id("\nВведите ID задачи для изменения: ")
+    task = storage.get_by_id(task_id)
+
+    if not task:
+        print(f"Ошибка: задачи с ID {task_id} не существует")
+        return
+
+    print(f"\n=== Изменение задачи «{task.title}» ===")
+    print("Оставьте поле пустым, чтобы не менять.\n")
+
+    new_title = input(f"Название [{task.title}]: ").strip()
+    if new_title:
+        error = validate_title(new_title)
+        if error:
+            print(error)
+            return
+        task.title = new_title
+
+    new_assignee = input(f"Исполнитель [{task.assignee}]: ").strip()
+    if new_assignee:
+        task.assignee = new_assignee
+
+    print(f"Текущий приоритет: {task.priority}")
+    new_priority = input(f"Новый приоритет ({', '.join(PRIORITIES)}) или пусто: ").strip()
+    if new_priority:
+        if new_priority in PRIORITIES:
+            task.priority = new_priority
+        else:
+            print(f"Ошибка: приоритет должен быть из {', '.join(PRIORITIES)}")
+            return
+
+    print(f"Текущий этап: {task.stage}")
+    new_stage = input(f"Новый этап ({', '.join(STAGES)}) или пусто: ").strip()
+    if new_stage:
+        if new_stage in STAGES:
+            task.stage = new_stage
+        else:
+            print(f"Ошибка: этап должен быть из {', '.join(STAGES)}")
+            return
+
+    new_date = input(f"Срок [{task.due_date}]: ").strip()
+    if new_date:
+        error = validate_date(new_date)
+        if error:
+            print(error)
+            return
+        task.due_date = new_date
+
+    print(f"Текущий статус: {task.status}")
+    new_status = input(f"Новый статус ({', '.join(STATUSES)}) или пусто: ").strip()
+    if new_status:
+        if new_status in STATUSES:
+            task.status = new_status
+        else:
+            print(f"Ошибка: статус должен быть из {', '.join(STATUSES)}")
+            return
+
+    storage.update(task)
+    print(f"\n✓ Задача «{task.title}» обновлена")
+
+
+def delete_task(storage):
+    """Удаление задачи по ID с подтверждением."""
+    task_id = ask_id("\nВведите ID задачи для удаления: ")
+    task = storage.get_by_id(task_id)
+
+    if not task:
+        print(f"Ошибка: задачи с ID {task_id} не существует")
+        return
+
+    print(f"\nЗадача: «{task.title}» (исполнитель: {task.assignee})")
+    confirm = input("Удалить? (да/нет): ").strip().lower()
+
+    if confirm in ("да", "y", "yes", "д"):
+        storage.delete(task_id)
+        print(f"✓ Задача «{task.title}» удалена")
+    else:
+        print("Удаление отменено")
+
+
 def show_summary(storage):
     """Показать сводку по задачам."""
     tasks = storage.get_all()
@@ -178,6 +270,8 @@ def main():
         print("4. Показать сводку")
         print("5. Фильтровать задачи")
         print("6. Найти задачу по названию")
+        print("7. Изменить задачу")
+        print("8. Удалить задачу")
         print("0. Выход")
 
         choice = input("\nВыберите действие: ").strip()
@@ -194,11 +288,15 @@ def main():
             filter_tasks(storage)
         elif choice == "6":
             search_tasks(storage)
+        elif choice == "7":
+            edit_task(storage)
+        elif choice == "8":
+            delete_task(storage)
         elif choice == "0":
             print("До встречи!")
             break
         else:
-            print("Ошибка: выберите 1–6 или 0")
+            print("Ошибка: выберите 1–8 или 0")
 
 
 if __name__ == "__main__":
