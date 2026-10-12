@@ -110,6 +110,31 @@ def show_overdue(storage):
         print()
 
 
+def show_summary(storage):
+    """Показать сводку по задачам."""
+    tasks = storage.get_all()
+    print("\n=== Сводка по задачам ===\n")
+
+    if not tasks:
+        print("Задач пока нет.")
+        return
+
+    print("По статусам:")
+    for status in STATUSES:
+        count = sum(1 for t in tasks if t.status == status)
+        print(f"  {status}: {count}")
+
+    print("\nПо исполнителям:")
+    assignees = sorted(set(t.assignee for t in tasks))
+    for a in assignees:
+        count = sum(1 for t in tasks if t.assignee == a)
+        print(f"  {a}: {count}")
+
+    overdue = [t for t in tasks if t.is_overdue()]
+    print(f"\nПросроченных задач: {len(overdue)}")
+    print(f"Всего задач: {len(tasks)}")
+
+
 def main():
     """Главное меню."""
     storage = TaskStorage()
@@ -119,6 +144,7 @@ def main():
         print("1. Добавить задачу")
         print("2. Показать все задачи")
         print("3. Показать просроченные задачи")
+        print("4. Показать сводку")
         print("0. Выход")
 
         choice = input("\nВыберите действие: ").strip()
@@ -129,11 +155,13 @@ def main():
             show_tasks(storage)
         elif choice == "3":
             show_overdue(storage)
+        elif choice == "4":
+            show_summary(storage)
         elif choice == "0":
             print("До встречи!")
             break
         else:
-            print("Ошибка: выберите 1, 2, 3 или 0")
+            print("Ошибка: выберите 1, 2, 3, 4 или 0")
 
 
 if __name__ == "__main__":
